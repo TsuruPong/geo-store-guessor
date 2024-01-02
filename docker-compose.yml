@@ -1,0 +1,46 @@
+version: "3"
+
+services:
+  app:
+    container_name: gsg-app
+    build:
+      context: ./images
+      dockerfile: Dockerfile.app
+    ports: 
+      - "3000:3000"
+    volumes:
+      - type: bind
+        source: ./container/gsg_app
+        target: /usr/app
+    working_dir: /usr/app
+    command: ["npm", "run", "dev"]
+    tty: true
+
+  db:
+    container_name: gsg-db
+    build:
+      context: ./images
+      dockerfile: Dockerfile.db
+    ports:
+      - "5432:5432"
+    volumes:
+      - ./container/gsg_db/init:/docker-entrypoint-initdb.d
+    environment:
+      POSTGRES_USER: root
+      POSTGRES_PASSWORD: root
+    tty: true
+
+  api:
+    container_name: gsg-api
+    build:
+      context: ./images
+      dockerfile: Dockerfile.api
+    ports:
+      - "8080:4000"
+    volumes:
+      - type: bind
+        source: ./container/gsg_api
+        target: /usr/api
+    working_dir: /usr/api
+    command: ["npm", "run", "dev"]
+    tty: true
