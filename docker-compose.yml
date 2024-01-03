@@ -14,7 +14,6 @@ services:
         target: /usr/app
     working_dir: /usr/app
     command: ["npm", "run", "dev"]
-    tty: true
 
   db:
     container_name: gsg-db
@@ -23,12 +22,13 @@ services:
       dockerfile: Dockerfile.db
     ports:
       - "5432:5432"
+    networks:
+      - db_connection
     volumes:
-      - ./container/gsg_db/init:/docker-entrypoint-initdb.d
+      - ./container/gsg_db:/var/lib/postgresql/data
     environment:
-      POSTGRES_USER: root
-      POSTGRES_PASSWORD: root
-    tty: true
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASS}
 
   api:
     container_name: gsg-api
@@ -36,11 +36,31 @@ services:
       context: ./images
       dockerfile: Dockerfile.api
     ports:
-      - "8080:4000"
+      - "4000:4000"
+    networks:
+      - db_connection
     volumes:
       - type: bind
         source: ./container/gsg_api
         target: /usr/api
     working_dir: /usr/api
     command: ["npm", "run", "dev"]
-    tty: true
+
+  pgadmin:
+    image: dpage/pgadmin4:6.11
+    container_name: pgadmin
+    ports:
+      - 80:80
+    networks:
+      - db_connection
+    volumes:
+      - ./container/pgadmin:/var/lib/pgadmin
+    environment:
+      PGADMIN_DEFAULT_EMAIL: example@example.com
+      PGADMIN_DEFAULT_PASSWORD: password
+    depends_on:
+      - db
+
+networks:
+  db_connection:
+    driver: bridge
