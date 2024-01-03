@@ -5,6 +5,7 @@ const prisma = new PrismaClient();
 const typeDefinitions = `
   type Query {
     stores: [Store!]!
+    random: Store!
   }
 
   type Store {
@@ -20,6 +21,13 @@ const resolvers = {
   Query: {
     stores: () => {
       return prisma.store.findMany();
+    },
+    random: async () => {
+      const total = await prisma.store.count();
+      const index = Math.floor(Math.random() * total);
+      return await prisma.store.findFirst({
+        skip: index
+      });
     }
   }
 }
